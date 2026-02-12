@@ -18,8 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Hàm kiểm tra mật khẩu yếu
   String? _validatePassword(String password) {
-    if (password.length < 6) {
-      return "Mật khẩu phải có ít nhất 6 ký tự.";
+    if (password.length < 8) {
+      return "Mật khẩu phải có ít nhất 8 ký tự.";
     }
     // Kiểm tra các dãy số liên tiếp hoặc lặp lại (giống logic trong code nhúng của bạn)
     bool isEasy = true;
