@@ -12,56 +12,25 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
-  final _confirmPassController = TextEditingController(); // Ô xác nhận mật khẩu
+  final _confirmPassController = TextEditingController();
   bool _isLogin = true;
   bool _isLoading = false;
+  bool _obscurePass = true;
 
-  // Hàm kiểm tra mật khẩu yếu
   String? _validatePassword(String password) {
-    if (password.length < 8) {
-      return "Mật khẩu phải có ít nhất 8 ký tự.";
-    }
-    // Kiểm tra các dãy số liên tiếp hoặc lặp lại (giống logic trong code nhúng của bạn)
-    bool isEasy = true;
-    for (int i = 1; i < password.length; i++) {
-      if (password[i] != password[0]) {
-        isEasy = false;
-        break;
-      }
-    }
-    if (isEasy) return "Mật khẩu quá đơn giản (không được trùng lặp 1 ký tự).";
-    
-    // Kiểm tra dãy số liên tiếp (123456...)
-    if (password == "123456" || password == "12345678" || password == "654321") {
-      return "Mật khẩu này quá phổ biến và yếu.";
-    }
-    
+    if (password.length < 8) return "Mật khẩu phải có ít nhất 8 ký tự.";
+    if (RegExp(r'^(.)\1+$').hasMatch(password)) return "Mật khẩu quá đơn giản.";
     return null;
   }
 
   Future<void> _submit() async {
     final email = _emailController.text.trim();
     final pass = _passController.text.trim();
-    final confirmPass = _confirmPassController.text.trim();
-
-    if (email.isEmpty || pass.isEmpty) {
-      _showError("Vui lòng nhập đầy đủ thông tin.");
-      return;
-    }
 
     if (!_isLogin) {
-      // 1. Kiểm tra mật khẩu yếu
       final error = _validatePassword(pass);
-      if (error != null) {
-        _showError(error);
-        return;
-      }
-
-      // 2. Kiểm tra xác nhận mật khẩu
-      if (pass != confirmPass) {
-        _showError("Mật khẩu xác nhận không khớp.");
-        return;
-      }
+      if (error != null) { _showError(error); return; }
+      if (pass != _confirmPassController.text.trim()) { _showError("Mật khẩu không khớp."); return; }
     }
 
     setState(() => _isLoading = true);
@@ -71,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         UserCredential cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: pass);
         await FirebaseDatabase.instance.ref("users/${cred.user!.uid}").set({
-          "name": "Thành viên mới",
+          "name": email.split('@')[0],
           "role": "member",
           "can_unlock": false,
         });
@@ -84,9 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.redAccent));
   }
 
   @override
@@ -95,62 +62,52 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue.shade900, Colors.blue.shade500],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.indigo.shade900, Colors.blue.shade600],
           ),
         ),
         child: Center(
           child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(30),
-              child: Card(
-                elevation: 15,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                child: Padding(
-                  padding: const EdgeInsets.all(25),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.shield_outlined, size: 70, color: Colors.blue.shade800),
-                      const SizedBox(height: 10),
-                      Text(
-                        _isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ BẢO MẬT",
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 25),
-                      _buildTextField(_emailController, Icons.email, "Email", false),
+            padding: const EdgeInsets.all(30),
+            child: Card(
+              elevation: 20,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              child: Padding(
+                padding: const EdgeInsets.all(25),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.shield_rounded, size: 70, color: Colors.indigo.shade800),
+                    const SizedBox(height: 10),
+                    Text(_isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 25),
+                    _buildField(_emailController, Icons.email, "Email", false),
+                    const SizedBox(height: 15),
+                    _buildField(_passController, Icons.lock, "Mật khẩu", true),
+                    if (!_isLogin) ...[
                       const SizedBox(height: 15),
-                      _buildTextField(_passController, Icons.lock, "Mật khẩu", true),
-                      
-                      // Chỉ hiện ô xác nhận khi ở chế độ Đăng ký
-                      if (!_isLogin) ...[
-                        const SizedBox(height: 15),
-                        _buildTextField(_confirmPassController, Icons.lock_reset, "Xác nhận mật khẩu", true),
-                      ],
-                      
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade800,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                          ),
-                          child: _isLoading 
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text(_isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ"),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => setState(() => _isLogin = !_isLogin),
-                        child: Text(_isLogin ? "Tạo tài khoản mới" : "Đã có tài khoản? Đăng nhập"),
-                      ),
+                      _buildField(_confirmPassController, Icons.lock_reset, "Xác nhận mật khẩu", true),
                     ],
-                  ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 55,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo.shade800,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        ),
+                        child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(_isLogin ? "ĐĂNG NHẬP" : "ĐĂNG KÝ"),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => setState(() => _isLogin = !_isLogin),
+                      child: Text(_isLogin ? "Tạo tài khoản mới" : "Đã có tài khoản? Đăng nhập"),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -160,12 +117,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, IconData icon, String label, bool isPass) {
+  Widget _buildField(TextEditingController controller, IconData icon, String label, bool isPass) {
     return TextField(
       controller: controller,
-      obscureText: isPass,
+      obscureText: isPass ? _obscurePass : false,
       decoration: InputDecoration(
         prefixIcon: Icon(icon),
+        suffixIcon: isPass ? IconButton(icon: Icon(_obscurePass ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _obscurePass = !_obscurePass)) : null,
         labelText: label,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
       ),
