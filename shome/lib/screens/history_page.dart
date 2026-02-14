@@ -72,9 +72,9 @@ class HistoryPage extends StatelessWidget {
   Widget _buildTimelineItem(Map log, Animation<double> animation) {
     // LOGIC KIỂM TRA: Nếu hành động chứa từ "Từ chối", "Sai", hoặc "KHOA"
     String action = log['action'].toString();
-    bool isDenied = action.contains("Tu choi") || 
+    bool isDenied = action.contains("Từ chối") || 
                     action.contains("Sai") || 
-                    action.contains("KHOA") || 
+                    action.contains("KHÓA") || 
                     action.contains("Denied");
 
     Color mainColor = isDenied ? Colors.redAccent : Colors.green.shade600;
