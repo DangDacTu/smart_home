@@ -71,7 +71,7 @@ class ControlPage extends StatelessWidget {
             children: const [
               Text("Chào buổi tối,", style: TextStyle(color: Colors.white70, fontSize: 16)),
               SizedBox(height: 5),
-              Text("Chủ nhà Universe", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+              Text("Chủ nhà", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
             ],
           ),
           const CircleAvatar(
