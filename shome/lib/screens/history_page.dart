@@ -10,14 +10,14 @@ class HistoryPage extends StatelessWidget {
     final _db = FirebaseDatabase.instance.ref().child('logs');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
+      backgroundColor: const Color(0xFFF5F7FA), // Đồng bộ màu nền
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         centerTitle: true,
         title: const Text(
           "NHẬT KÝ RA VÀO",
-          style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, letterSpacing: 1.2),
         ),
       ),
       body: Column(
@@ -27,6 +27,7 @@ class HistoryPage extends StatelessWidget {
             child: FirebaseAnimatedList(
               query: _db.limitToLast(50),
               sort: (a, b) => b.key!.compareTo(a.key!),
+              padding: const EdgeInsets.only(bottom: 20),
               itemBuilder: (context, snapshot, animation, index) {
                 Map log = snapshot.value as Map;
                 return _buildTimelineItem(log, animation);
@@ -40,12 +41,14 @@ class HistoryPage extends StatelessWidget {
 
   Widget _buildSummaryHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(25),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.indigo.shade700,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.indigo.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))],
+        gradient: LinearGradient(colors: [Colors.indigo.shade700, Colors.blue.shade500]),
+        borderRadius: BorderRadius.circular(25), // Đồng bộ bo góc
+        boxShadow: [
+          BoxShadow(color: Colors.indigo.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -61,94 +64,45 @@ class HistoryPage extends StatelessWidget {
   Widget _buildStatColumn(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white70, size: 20),
-        const SizedBox(height: 5),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+        Icon(icon, color: Colors.white70, size: 22),
+        const SizedBox(height: 8),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
         Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
       ],
     );
   }
 
   Widget _buildTimelineItem(Map log, Animation<double> animation) {
-    // LOGIC KIỂM TRA: Nếu hành động chứa từ "Từ chối", "Sai", hoặc "KHOA"
     String action = log['action'].toString();
-    bool isDenied = action.contains("Từ chối") || 
-                    action.contains("Sai") || 
-                    action.contains("KHÓA") || 
-                    action.contains("Denied");
+    bool isDenied = action.contains("Từ chối") || action.contains("Sai") || action.contains("KHÓA");
+    Color mainColor = isDenied ? Colors.redAccent : Colors.blue.shade600;
 
-    Color mainColor = isDenied ? Colors.redAccent : Colors.green.shade600;
-    IconData statusIcon = isDenied ? Icons.cancel : Icons.check_circle; // Dấu X hoặc Dấu Tích
-
-    return FadeTransition(
-      opacity: animation,
-      child: SizeTransition(
-        sizeFactor: animation,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(color: mainColor, shape: BoxShape.circle),
-                  ),
-                  Container(width: 2, height: 60, color: Colors.grey.shade300),
-                ],
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    border: isDenied ? Border.all(color: Colors.red.shade100, width: 1) : null,
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            log['user'] ?? "Ẩn danh",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold, 
-                              fontSize: 15,
-                              color: isDenied ? Colors.red.shade900 : Colors.black87
-                            ),
-                          ),
-                          Text(
-                            log['time'] ?? "--:--",
-                            style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(statusIcon, color: mainColor, size: 18), // HIỂN THỊ DẤU X ĐỎ Ở ĐÂY
-                          const SizedBox(width: 8),
-                          Text(
-                            "$action qua ${log['method']}",
-                            style: TextStyle(
-                              color: isDenied ? Colors.redAccent : Colors.black87, 
-                              fontSize: 13,
-                              fontWeight: isDenied ? FontWeight.w500 : FontWeight.normal
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+    return SizeTransition(
+      sizeFactor: animation,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          leading: CircleAvatar(
+            backgroundColor: mainColor.withOpacity(0.1),
+            child: Icon(isDenied ? Icons.gpp_bad : Icons.gpp_good, color: mainColor),
+          ),
+          title: Text(
+            log['user'] ?? "Ẩn danh",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Text("$action qua ${log['method']}"),
+          ),
+          trailing: Text(
+            log['time'] ?? "--:--",
+            style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
           ),
         ),
       ),
