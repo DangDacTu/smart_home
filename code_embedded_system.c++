@@ -10,10 +10,10 @@
 // #include <TOTP.h>
 
 // // --- THÔNG TIN KẾT NỐI (Cần điền) ---
-// #define WIFI_SSID "Ten_Wifi_Cua_Ban"
+// #define WIFI_SSID "Ten_Wifi"
 // #define WIFI_PASS "Mat_Khau_Wifi"
-// #define DATABASE_URL "db-smart-home-default-rtdb.asia-southeast1.firebasedatabase.app"
-// #define DATABASE_SECRET "Lay_Trong_Project_Settings_Database_Secrets"
+// #define DATABASE_URL ""
+// #define DATABASE_SECRET "Database_Secrets"
 
 // // --- CẤU HÌNH CHÂN (ESP32-S3) ---
 // #define SDA_PIN 8
@@ -193,4 +193,5 @@
 //         }
 //     }
 // }
+
 
